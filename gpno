@@ -1,0 +1,73 @@
+module FinancialTools
+  def format_currency(amount)
+    "$#{'%.2f' % amount}"
+  end
+end
+
+class BankError < StandardError; end
+class InsufficientFundsError < BankError; end
+
+class Account
+  include FinancialTools
+  attr_reader :owner, :balance
+
+  def initialize(owner, balance = 0)
+    @owner = owner
+    @balance = balance
+    @transactions = []
+    log_transaction("Account created with #{format_currency(balance)}")
+  end
+
+  def deposit(amount)
+    raise BankError, "Deposit must be positive" if amount <= 0
+    @balance += amount
+    log_transaction("Deposited #{format_currency(amount)}")
+    @balance
+  end
+
+  def withdraw(amount)
+    raise InsufficientFundsError, "Balance: #{format_currency(@balance)}" if amount > @balance
+    @balance -= amount
+    log_transaction("Withdrew #{format_currency(amount)}")
+    @balance
+  end
+
+  def statement
+    puts "--- Statement for #{@owner} ---"
+    @transactions.each { |t| puts t }
+    puts "Current Balance: #{format_currency(@balance)}"
+  end
+
+  private
+
+  def log_transaction(msg)
+    @transactions << "[#{Time.now.strftime('%Y-%m-%d %H:%M')}] #{msg}"
+  end
+end
+
+class SavingsAccount < Account
+  INTEREST_RATE = 0.02
+
+  def apply_interest
+    interest = @balance * INTEREST_RATE
+    deposit(interest)
+    puts "Interest applied: #{format_currency(interest)}"
+  end
+end
+
+begin
+  my_account = SavingsAccount.new("Alice", 1000)
+  my_account.deposit(500)
+  my_account.withdraw(200)
+  my_account.apply_interest
+  my_account.statement
+
+  puts "\nAttempting overdraw..."
+  my_account.withdraw(5000)
+rescue InsufficientFundsError => e
+  puts "Transaction Failed: #{e.message}"
+rescue BankError => e
+  puts "Bank System Error: #{e.message}"
+ensure
+  puts "Session ended."
+end
