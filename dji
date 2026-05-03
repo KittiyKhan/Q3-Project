@@ -1,0 +1,27 @@
+#include <iostream>
+#include <vector>
+#include <numeric>
+
+using namespace std;
+
+// Function to calculate total resistance in parallel
+double parallelResistance(const vector<double>& R) {
+    double invSum = 0;
+    for(double r : R) invSum += (1.0 / r);
+    return 1.0 / invSum;
+}
+
+int main() {
+    int n;
+    cout << "Enter number of resistors in parallel: ";
+    cin >> n;
+
+    vector<double> resistances(n);
+    for(int i = 0; i < n; i++) {
+        cout << "Enter R" << i+1 << " value (ohms): ";
+        cin >> resistances[i];
+    }
+
+    cout << "Total Parallel Resistance: " << parallelResistance(resistances) << " ohms" << endl;
+    return 0;
+}
